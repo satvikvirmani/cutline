@@ -29,7 +29,7 @@ interface StorageDB extends DBSchema {
 
 export const STORAGE_CHANGE_EVENT = 'cut-tracker:storage-change';
 
-const DB_NAME = 'cut-tracker';
+const DB_NAME = 'redis-red-blanket';
 const DB_VERSION = 1;
 
 let dbPromise: Promise<IDBPDatabase<StorageDB>> | null = null;
