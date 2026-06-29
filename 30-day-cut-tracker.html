@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>30-Day Cut Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1F4F2;
+    --grid-line:#CBD8D2;
+    --ink:#1C2B27;
+    --ink-soft:#5B6B65;
+    --accent-amber:#D9912E;
+    --accent-green:#3F7A5C;
+    --accent-coral:#C75646;
+    --card-bg:#FFFFFF;
+    --border:#DCE5E0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0/28px 100%,
+      var(--paper);
+    background-attachment:local;
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    padding:20px 14px 60px;
+  }
+  .wrap{max-width:680px;margin:0 auto;}
+  .header-card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px 20px;
+    margin-bottom:14px;
+    box-shadow:0 1px 0 var(--border);
+  }
+  .title-row{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;}
+  .title{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:800;
+    font-size:26px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    margin:0;
+  }
+  .day-count{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    font-size:18px;
+    color:var(--accent-amber);
+  }
+  .subtitle{color:var(--ink-soft);font-size:13px;margin-top:2px;}
+  .streak-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:14px;}
+  .dot{
+    width:18px;height:18px;border-radius:3px;
+    border:1px solid var(--border);
+    background:#E7ECE9;
+    cursor:pointer;
+    position:relative;
+    transition:transform .12s ease;
+  }
+  .dot:hover{transform:scale(1.15);}
+  .dot.logged-good{background:var(--accent-green);border-color:var(--accent-green);}
+  .dot.logged-over{background:var(--accent-amber);border-color:var(--accent-amber);}
+  .dot.logged-bad{background:var(--accent-coral);border-color:var(--accent-coral);}
+  .dot.selected{outline:2px solid var(--ink);outline-offset:1px;}
+  .dot.is-today::after{
+    content:'';position:absolute;inset:-4px;border:1.5px dashed var(--ink-soft);border-radius:5px;
+  }
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px 20px;
+    margin-bottom:14px;
+  }
+  .card h2{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:0.8px;
+    color:var(--ink-soft);
+    margin:0 0 14px;
+    border-bottom:1px solid var(--border);
+    padding-bottom:8px;
+  }
+  .bar-row{margin-bottom:14px;}
+  .bar-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;}
+  .bar-label b{font-family:'IBM Plex Mono',monospace;font-weight:500;}
+  .bar-track{height:10px;background:#E7ECE9;border-radius:5px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:5px;transition:width .25s ease;}
+  .fill-green{background:var(--accent-green);}
+  .fill-amber{background:var(--accent-amber);}
+  .fill-coral{background:var(--accent-coral);}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .field{display:flex;flex-direction:column;gap:4px;}
+  .field label{font-size:12px;color:var(--ink-soft);}
+  .field input, .field select, .field textarea{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    padding:8px 9px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    background:#FAFCFB;
+    color:var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:2px solid var(--accent-amber);outline-offset:1px;
+  }
+  .water-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+  .glass{
+    width:20px;height:24px;border-radius:2px 2px 6px 6px;
+    border:1.5px solid var(--accent-green);
+    background:#fff;cursor:pointer;
+  }
+  .glass.filled{background:var(--accent-green);}
+  .workout-box{
+    display:flex;justify-content:space-between;align-items:center;
+    background:#FAFCFB;border:1px solid var(--border);border-radius:8px;
+    padding:10px 12px;margin-top:10px;
+  }
+  .workout-box .label{font-size:13px;}
+  .workout-box .plan{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);}
+  .toggle{
+    width:42px;height:24px;border-radius:12px;background:#E0E7E3;border:1px solid var(--border);
+    position:relative;cursor:pointer;flex-shrink:0;margin-left:10px;
+  }
+  .toggle.on{background:var(--accent-green);}
+  .toggle .knob{
+    position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+    background:#fff;transition:left .15s ease;
+  }
+  .toggle.on .knob{left:21px;}
+  .save-btn{
+    margin-top:14px;width:100%;padding:11px;border:none;border-radius:7px;
+    background:var(--ink);color:#fff;font-family:'Barlow Condensed',sans-serif;
+    font-size:15px;letter-spacing:0.5px;text-transform:uppercase;font-weight:700;
+    cursor:pointer;
+  }
+  .save-btn:active{transform:scale(0.99);}
+  .saved-note{font-size:12px;color:var(--accent-green);text-align:center;margin-top:8px;min-height:14px;}
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;}
+  .stat-num{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;}
+  .stat-label{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.4px;}
+  .gear{cursor:pointer;font-size:12px;color:var(--ink-soft);text-decoration:underline;margin-top:10px;display:inline-block;}
+  .settings-panel{display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;}
+  .settings-panel.open{display:block;}
+  textarea{resize:vertical;min-height:50px;font-family:'Inter',sans-serif !important;}
+  @media (max-width:420px){.field-grid{grid-template-columns:1fr;}.stats-grid{grid-template-columns:repeat(3,1fr);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header-card">
+    <div class="title-row">
+      <h1 class="title">30-Day Cut</h1>
+      <div class="day-count" id="dayCount">Day 1 of 30</div>
+    </div>
+    <div class="subtitle">Fat loss · belly & waist · face structure — log it daily, the dots fill in as you go.</div>
+    <div class="streak-row" id="streakRow"></div>
+    <span class="gear" id="gearToggle">edit targets</span>
+    <div class="settings-panel" id="settingsPanel">
+      <div class="field-grid">
+        <div class="field"><label>Calorie target / day</label><input type="number" id="tgtCal" value="1950"></div>
+        <div class="field"><label>Protein target (g) / day</label><input type="number" id="tgtProt" value="145"></div>
+        <div class="field"><label>Water target (glasses)</label><input type="number" id="tgtWater" value="14"></div>
+        <div class="field"><label>Steps target / day</label><input type="number" id="tgtSteps" value="9000"></div>
+      </div>
+      <button class="save-btn" id="saveTargets" style="margin-top:10px;">Save targets</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 id="todayTargetsHeading">Today's progress</h2>
+    <div class="bar-row">
+      <div class="bar-label"><span>Calories</span><b id="calLabel">0 / 1950</b></div>
+      <div class="bar-track"><div class="bar-fill fill-green" id="calBar" style="width:0%"></div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label"><span>Protein</span><b id="protLabel">0 / 145g</b></div>
+      <div class="bar-track"><div class="bar-fill fill-green" id="protBar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Log entry — <span id="logDateLabel"></span></h2>
+    <div class="field-grid">
+      <div class="field"><label>Calories eaten</label><input type="number" id="inCal" placeholder="e.g. 1900"></div>
+      <div class="field"><label>Protein (g)</label><input type="number" id="inProt" placeholder="e.g. 145"></div>
+      <div class="field"><label>Weight (kg)</label><input type="number" step="0.1" id="inWeight" placeholder="e.g. 79.6"></div>
+      <div class="field"><label>Waist (cm)</label><input type="number" step="0.1" id="inWaist" placeholder="e.g. 88"></div>
+    </div>
+
+    <div class="field" style="margin-top:14px;">
+      <label>Water (tap glasses to fill, target shown by border)</label>
+      <div class="water-row" id="waterRow"></div>
+    </div>
+
+    <div class="workout-box">
+      <div>
+        <div class="label">Workout</div>
+        <div class="plan" id="plannedWorkout">—</div>
+      </div>
+      <div class="toggle" id="workoutToggle"><div class="knob"></div></div>
+    </div>
+
+    <div class="field" style="margin-top:14px;">
+      <label>Notes (optional — how face/belly looks, energy, cravings...)</label>
+      <textarea id="inNotes" placeholder="e.g. less puffy this morning, slept 6hrs"></textarea>
+    </div>
+
+    <button class="save-btn" id="saveDay">Save this day</button>
+    <div class="saved-note" id="savedNote"></div>
+  </div>
+
+  <div class="card">
+    <h2>This week</h2>
+    <div class="stats-grid">
+      <div><div class="stat-num" id="weekAvgWeight">—</div><div class="stat-label">Avg weight</div></div>
+      <div><div class="stat-num" id="weekWorkouts">0/0</div><div class="stat-label">Workouts done</div></div>
+      <div><div class="stat-num" id="weekLogged">0/7</div><div class="stat-label">Days logged</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const START_DATE = new Date(); START_DATE.setHours(0,0,0,0);
+const DAYS_TOTAL = 30;
+const WORKOUT_PLAN = {
+  0:"Rest / active recovery — walk + stretch",
+  1:"Full body strength",
+  2:"30min incline walk/cardio + core",
+  3:"Full body strength",
+  4:"HIIT 20min (30s on/30s off)",
+  5:"Full body strength",
+  6:"Long walk/jog 40-50min + abs"
+};
+
+let targets = {calories:1950, protein:145, water:14, steps:9000};
+let selectedDate = fmt(START_DATE);
+let dayLogs = {}; // date -> entry
+
+function fmt(d){ return d.toISOString().slice(0,10); }
+function dateFromOffset(n){ const d=new Date(START_DATE); d.setDate(d.getDate()+n); return d; }
+function weekdayLabel(d){ return d.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'}); }
+
+async function loadTargets(){
+  try{
+    const r = await window.storage.get('targets', false);
+    if(r && r.value) targets = JSON.parse(r.value);
+  }catch(e){}
+  document.getElementById('tgtCal').value = targets.calories;
+  document.getElementById('tgtProt').value = targets.protein;
+  document.getElementById('tgtWater').value = targets.water;
+  document.getElementById('tgtSteps').value = targets.steps;
+}
+
+async function saveTargets(){
+  targets = {
+    calories: Number(document.getElementById('tgtCal').value)||1950,
+    protein: Number(document.getElementById('tgtProt').value)||145,
+    water: Number(document.getElementById('tgtWater').value)||14,
+    steps: Number(document.getElementById('tgtSteps').value)||9000
+  };
+  try{ await window.storage.set('targets', JSON.stringify(targets), false); }catch(e){}
+  renderWaterRow();
+  loadDay(selectedDate);
+}
+
+async function loadAllLogs(){
+  for(let i=0;i<DAYS_TOTAL;i++){
+    const key = fmt(dateFromOffset(i));
+    try{
+      const r = await window.storage.get('daylog:'+key, false);
+      if(r && r.value) dayLogs[key] = JSON.parse(r.value);
+    }catch(e){ /* not found, ignore */ }
+  }
+}
+
+function dayStatusClass(entry){
+  if(!entry) return '';
+  const calOk = entry.calories && entry.calories <= targets.calories*1.1;
+  const protOk = entry.protein && entry.protein >= targets.protein*0.85;
+  if(calOk && protOk) return 'logged-good';
+  if(entry.calories || entry.protein) return entry.calories > targets.calories*1.25 ? 'logged-bad' : 'logged-over';
+  return '';
+}
+
+function renderStreak(){
+  const row = document.getElementById('streakRow');
+  row.innerHTML = '';
+  const todayStr = fmt(START_DATE);
+  for(let i=0;i<DAYS_TOTAL;i++){
+    const d = dateFromOffset(i);
+    const key = fmt(d);
+    const dot = document.createElement('div');
+    dot.className = 'dot ' + dayStatusClass(dayLogs[key]);
+    if(key===todayStr) dot.classList.add('is-today');
+    if(key===selectedDate) dot.classList.add('selected');
+    dot.title = weekdayLabel(d);
+    dot.addEventListener('click', ()=>{ selectedDate = key; renderStreak(); loadDay(key); });
+    row.appendChild(dot);
+  }
+  const idx = Math.round((new Date(selectedDate)-START_DATE)/86400000)+1;
+  document.getElementById('dayCount').textContent = `Day ${idx} of ${DAYS_TOTAL}`;
+}
+
+function renderWaterRow(){
+  const row = document.getElementById('waterRow');
+  row.innerHTML = '';
+  for(let i=0;i<targets.water;i++){
+    const g = document.createElement('div');
+    g.className = 'glass';
+    g.dataset.idx = i;
+    row.appendChild(g);
+  }
+}
+
+function setWaterFilled(n){
+  document.querySelectorAll('.glass').forEach(g=>{
+    g.classList.toggle('filled', Number(g.dataset.idx) < n);
+  });
+}
+
+function currentWaterFilled(){
+  return document.querySelectorAll('.glass.filled').length;
+}
+
+function bar(elBarId, elLabelId, value, target, unit, higherIsBetter){
+  const pct = Math.min(100, (value/target)*100 || 0);
+  const bar = document.getElementById(elBarId);
+  bar.style.width = pct+'%';
+  bar.className = 'bar-fill ';
+  if(higherIsBetter){
+    bar.className += value>=target? 'fill-green' : value>=target*0.8 ? 'fill-amber' : 'fill-coral';
+  } else {
+    bar.className += value<=target*1.05 ? 'fill-green' : value<=target*1.2 ? 'fill-amber' : 'fill-coral';
+  }
+  document.getElementById(elLabelId).textContent = `${value||0} / ${target}${unit}`;
+}
+
+function loadDay(key){
+  const d = new Date(key);
+  document.getElementById('logDateLabel').textContent = weekdayLabel(d);
+  const entry = dayLogs[key] || {};
+  document.getElementById('inCal').value = entry.calories || '';
+  document.getElementById('inProt').value = entry.protein || '';
+  document.getElementById('inWeight').value = entry.weight || '';
+  document.getElementById('inWaist').value = entry.waist || '';
+  document.getElementById('inNotes').value = entry.notes || '';
+  setWaterFilled(entry.water || 0);
+  const toggle = document.getElementById('workoutToggle');
+  toggle.classList.toggle('on', !!entry.workoutDone);
+  document.getElementById('plannedWorkout').textContent = WORKOUT_PLAN[d.getDay()];
+  document.getElementById('savedNote').textContent = '';
+  bar('calBar','calLabel', entry.calories||0, targets.calories, '', false);
+  bar('protBar','protLabel', entry.protein||0, targets.protein, 'g', true);
+}
+
+async function saveDay(){
+  const entry = {
+    calories: Number(document.getElementById('inCal').value)||0,
+    protein: Number(document.getElementById('inProt').value)||0,
+    weight: Number(document.getElementById('inWeight').value)||0,
+    waist: Number(document.getElementById('inWaist').value)||0,
+    water: currentWaterFilled(),
+    workoutDone: document.getElementById('workoutToggle').classList.contains('on'),
+    notes: document.getElementById('inNotes').value||''
+  };
+  dayLogs[selectedDate] = entry;
+  try{
+    await window.storage.set('daylog:'+selectedDate, JSON.stringify(entry), false);
+    document.getElementById('savedNote').textContent = 'Saved ✓';
+  }catch(e){
+    document.getElementById('savedNote').textContent = 'Could not save — try again';
+  }
+  bar('calBar','calLabel', entry.calories, targets.calories, '', false);
+  bar('protBar','protLabel', entry.protein, targets.protein, 'g', true);
+  renderStreak();
+  renderWeekStats();
+}
+
+function mondayOf(d){
+  const dt = new Date(d);
+  const day = dt.getDay();
+  const diff = (day===0?-6:1)-day;
+  dt.setDate(dt.getDate()+diff);
+  return dt;
+}
+
+function renderWeekStats(){
+  const sel = new Date(selectedDate);
+  const mon = mondayOf(sel);
+  let weights=[], workoutsPlanned=0, workoutsDone=0, logged=0;
+  for(let i=0;i<7;i++){
+    const d = new Date(mon); d.setDate(d.getDate()+i);
+    const key = fmt(d);
+    const entry = dayLogs[key];
+    if(d.getDay()!==0) workoutsPlanned++; // Sunday is rest day, not counted
+    if(entry){
+      logged++;
+      if(entry.weight) weights.push(entry.weight);
+      if(entry.workoutDone) workoutsDone++;
+    }
+  }
+  document.getElementById('weekAvgWeight').textContent = weights.length ? (weights.reduce((a,b)=>a+b,0)/weights.length).toFixed(1)+'kg' : '—';
+  document.getElementById('weekWorkouts').textContent = `${workoutsDone}/${workoutsPlanned}`;
+  document.getElementById('weekLogged').textContent = `${logged}/7`;
+}
+
+document.getElementById('gearToggle').addEventListener('click', ()=>{
+  document.getElementById('settingsPanel').classList.toggle('open');
+});
+document.getElementById('saveTargets').addEventListener('click', saveTargets);
+document.getElementById('saveDay').addEventListener('click', saveDay);
+document.getElementById('workoutToggle').addEventListener('click', (e)=>{
+  e.currentTarget.classList.toggle('on');
+});
+document.getElementById('waterRow').addEventListener('click', (e)=>{
+  if(e.target.classList.contains('glass')){
+    setWaterFilled(Number(e.target.dataset.idx)+1);
+  }
+});
+document.getElementById('inCal').addEventListener('input', (e)=>{
+  bar('calBar','calLabel', Number(e.target.value)||0, targets.calories, '', false);
+});
+document.getElementById('inProt').addEventListener('input', (e)=>{
+  bar('protBar','protLabel', Number(e.target.value)||0, targets.protein, 'g', true);
+});
+
+(async function init(){
+  await loadTargets();
+  renderWaterRow();
+  await loadAllLogs();
+  renderStreak();
+  loadDay(selectedDate);
+  renderWeekStats();
+})();
+</script>
+</body>
+</html>
