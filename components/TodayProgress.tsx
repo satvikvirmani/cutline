@@ -30,7 +30,7 @@ export default function TodayProgress({ entry, targets }: Props) {
 
   return (
     <section className="card">
-      <h2>Today's progress</h2>
+      <h2>Today&apos;s progress</h2>
       <div className="bar-row">
         <div className="bar-label">
           <span>Calories</span>
